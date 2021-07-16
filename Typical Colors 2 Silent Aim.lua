@@ -5,8 +5,8 @@ local LocalPlayer = Players.LocalPlayer
 
 local Typing = false
 
-_G.SilentAimEnabled = true
-_G.DisableKey = Enum.KeyCode.Q
+getgenv().SilentAimEnabled = true
+getgenv().DisableKey = Enum.KeyCode.Q
 
 local function GetClosestPlayer()
 	local Target = nil
@@ -50,22 +50,19 @@ UserInputService.TextBoxFocusReleased:Connect(function()
 end)
 
 UserInputService.InputBegan:Connect(function(Input)
-	if Input.KeyCode == _G.DisableKey and Typing == false then
-		_G.SilentAimEnabled = not _G.SilentAimEnabled
+	if Input.KeyCode == getgenv().DisableKey and Typing == false then
+		getgenv().SilentAimEnabled = not getgenv().SilentAimEnabled
 	end
 end)
 
-local GameMetaTable = getrawmetatable(game)
-local OldNameCall = GameMetaTable.__namecall
+local OldNameCall = nil
 
-setreadonly(GameMetaTable, false)
-
-GameMetaTable.__namecall = newcclosure(function(Self, ...)
+OldNameCall = hookmetamethod(game, "__namecall", function(Self, ...)
 	local NameCallMethod = getnamecallmethod()
 	local Arguments = {...}
 
 	if tostring(Self) == "HitPart" and tostring(NameCallMethod) == "FireServer" then	
-		if _G.SilentAimEnabled == true then
+		if getgenv().SilentAimEnabled == true then
 			Arguments[1] = GetClosestPlayer().Character.Head
 			Arguments[2] = GetClosestPlayer().Character.Head.Position
 			Arguments[13] = true
@@ -76,5 +73,3 @@ GameMetaTable.__namecall = newcclosure(function(Self, ...)
 
 	return OldNameCall(Self, ...)
 end)
-
-setreadonly(GameMetaTable, true)
